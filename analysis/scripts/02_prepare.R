@@ -88,6 +88,17 @@ logmsg("mr_grade (G II-III n=", sum(mr_raw == "G II-III", na.rm = TRUE),
 # per-10 mg/dL lipids
 for (v in c("tc", "tg", "ldl", "hdl")) a[[paste0(v, "_10")]] <- a[[v]] / 10
 
+# Amendment 1 (plan/analysis_plan.md): continuous exposure + median-split groups
+a$log2_mac <- log2(a$mac_vol + 1)
+med_pos <- median(a$mac_vol[a$mac_vol > 0])
+a$mac_group_med <- factor(
+  ifelse(a$mac_vol == 0, "None",
+  ifelse(a$mac_vol <= med_pos, "Low", "High")),
+  levels = c("None", "Low", "High"))
+logmsg("median of positive volumes = ", round(med_pos, 1),
+       "; mac_group_med: ", paste(table(a$mac_group_med), collapse = "/"))
+stopifnot(all(table(a$mac_group_med) == c(269, 128, 128)))
+
 # non-numeric coercions introduced how many NAs?
 logmsg("hdl non-numeric -> NA: ", sum(is.na(a$hdl)) ,
        " | afib NA: ", sum(is.na(a$afib)))

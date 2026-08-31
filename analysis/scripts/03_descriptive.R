@@ -76,13 +76,17 @@ build_table <- function(g, glabels) {
   out
 }
 
-# Table 1: by MAC group
-g1 <- a$mac_group
-t1 <- build_table(g1, levels(g1))
-names(t1)[3:5] <- sprintf("%s MAC (N=%d)", c("No", "Low", "High"), table(g1))
-write.csv(t1, file.path(OUTPUT_DIR, "table1.csv"), row.names = FALSE,
-          fileEncoding = "UTF-8")
-logmsg("table1.csv written (", nrow(t1), " rows)")
+# Table 1: by MAC group — 717.2 grouping (reproduction record) and
+# median-split grouping (Amendment 1; manuscript table)
+for (gv in c("mac_group", "mac_group_med")) {
+  g1 <- a[[gv]]
+  t1 <- build_table(g1, levels(g1))
+  names(t1)[3:5] <- sprintf("%s MAC (N=%d)", c("No", "Low", "High"), table(g1))
+  fn <- if (gv == "mac_group") "table1.csv" else "table1_medgroup.csv"
+  write.csv(t1, file.path(OUTPUT_DIR, fn), row.names = FALSE,
+            fileEncoding = "UTF-8")
+  logmsg(fn, " written (", nrow(t1), " rows)")
+}
 
 # Supplementary Table 1: by vital status (exclude the death row itself)
 gd <- factor(a$death, levels = c(0, 1), labels = c("Survived", "Deceased"))

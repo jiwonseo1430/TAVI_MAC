@@ -1,12 +1,11 @@
 # PROGRESS — TAVI_MAC
 
-**Resume point (for next computer):** Stage 2 (analysis) complete — all tables,
-sensitivity analyses, and the KM figure are script-generated in
-`<data_dir>/output/`; see `output/discrepancy_report.md` for differences vs the
-preliminary docx (A.fib count inversion, Table 3-2 CI typos, MR-grade n=514
-decision pending, primary ΔC p=0.061 vs preliminary 0.024). Next step:
-manuscript drafting (Methods/Results) — needs a decision on MR-grade handling
-(discrepancy 1c) first.
+**Resume point (for next computer):** Amendment 1 (continuous MAC primary +
+median-split categories) executed; outputs in `<data_dir>/output/` (07/08
+scripts). TWO DECISIONS PENDING before manuscript: (1) MR-grade handling
+(discrepancy report 1c); (2) PH violation of the MAC exposure itself
+(cox.zph p=0.016 continuous / 0.023 categorical) — remedy (e.g., time-interval
+HRs) needs a plan amendment. Then: manuscript drafting.
 
 ## Checklist
 
@@ -30,6 +29,15 @@ manuscript drafting (Methods/Results) — needs a decision on MR-grade handling
 - [x] `06_km_figure.R` — fig1_km.png/.pdf (log-rank p<0.0001)
 - [x] discrepancy_report.md (A.fib inversion, T3-2 CI typos, MR n=514, ΔC p)
 - [ ] MR-grade handling decision (discrepancy 1c) — blocks Table 1 finalization
+
+### Stage 2b — Amendment 1: continuous MAC exposure (plan Amendment 1)
+- [x] 717.2 provenance established: cohort-derived maxstat cutpoint (adj p=0.012)
+- [x] `02/03` updated — log2_mac, median-split groups (269/128/128), table1_medgroup
+- [x] `07_continuous_primary.R` — primary log2 MAC HR 1.09 (1.04-1.15)/doubling;
+      median-split Low 1.87 / High 2.02; S1-S3 all significant; C 0.719→0.736
+      (p=0.197) / →0.740 categorical (p=0.085); nonlinearity p=0.008
+- [x] `08_figures_continuous.R` — fig1_km_med (log-rank p=0.021), fig2_spline
+- [ ] **PH violation of MAC exposure (p=0.016/0.023) — decision needed**
 
 ### Stage 3 — Manuscript
 - [ ] Draft (Methods/Results first)
