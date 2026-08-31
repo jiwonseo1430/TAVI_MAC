@@ -1,0 +1,31 @@
+# Data and outputs live on OneDrive (~/OneDrive/Research/data/TAVI_MAC), never in git
+data/
+analysis/output/*
+!analysis/output/.gitkeep
+
+# Per-computer config (contains local paths)
+config/config.yml
+
+# Data / binary artifacts
+*.xlsx
+*.xls
+*.csv
+*.rds
+*.RData
+*.docx
+*.pptx
+*.pdf
+*.png
+*.tif
+*.tiff
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# OS / Office temp
+Thumbs.db
+~$*
+desktop.ini
