@@ -133,5 +133,45 @@ Outputs (`<data_dir>/output/`): `table1.csv`, `suppl_table1.csv`, `table2.csv`,
 - Changing the MAC cut-off (717.2) or group definitions.
 
 ---
+## Amendment 1 — MAC exposure re-specification (APPROVED 2026-08-31, by JW Seo)
+
+**Reason (structural, not p-driven):** the 717.2 cut-off was verified to be a
+maximally-selected-rank-statistic optimal cutpoint derived from this cohort
+(`surv_cutpoint`, minprop=0.05, returns 717.23 exactly); no literature basis
+exists (nearest external values are device-trial enrollment criteria, 750 /
+1000 mm³). An uncorrected optimal cutpoint inflates type I error and biases
+the High-MAC HR upward; groups are also badly unbalanced (269/220/36, 14
+deaths in High). Decided after seeing the Stage-2 reproduction results —
+recorded here for transparency.
+
+**Supersedes §3 (exposure) and §4 items 4–6:**
+1. **Primary exposure (continuous):** `log2(mac_vol + 1)`, HR per doubling.
+   Same selection procedure as before: candidate covariates = univariable
+   p<0.05 (TC dropped for LDL), exposure forced, backward elimination at
+   Wald p<0.05 on one fixed complete-case dataset.
+2. **Dose–response:** natural cubic spline `ns(log2(mac_vol+1), df=3)` in the
+   adjusted model; LR test spline vs linear for nonlinearity; figure of HR vs
+   volume (reference = 0 mm³) with 95% CI.
+3. **Presentation categories (option a):** None (0) / Low (0 < vol ≤ median of
+   positive volumes) / High (> median). Expected 269/128/128, deaths 39/31/32.
+   Used for Table 1, KM figure, and a secondary categorical Cox model.
+4. **Old 717.2 grouping:** sensitivity analysis only, explicitly labeled
+   "data-derived optimal cutpoint (maximally selected rank statistics)";
+   maxstat-adjusted p reported if the maxstat package is available.
+5. **Sensitivity S1–S3:** re-run with the continuous exposure (S1 clinical
+   model = STS + CKD + A.fib + log2 MAC; S2 LASSO with exposure unpenalized;
+   S3 AIC backward).
+6. **Incremental value:** Model 1 = selected clinical covariates; Model 2 =
+   Model 1 + log2 MAC (continuous). Harrell's C + compareC. Secondary: Model 1
+   + median-split categories.
+7. **Deliverables added:** `07_continuous_primary.R`, `08_figures_continuous.R`;
+   updated `02_prepare.R` (new exposure/group variables), `03_descriptive.R`
+   (Table 1 by median grouping). Outputs: `table3c_*.csv`,
+   `sensitivity_continuous.csv`, `table4c.csv`, `table1_medgroup.csv`,
+   `fig2_spline.png/.pdf`, `fig1_km_med.png/.pdf`.
+Stage-2 outputs from the original grouping remain on disk as the reproduction
+record; the manuscript uses the Amendment-1 outputs.
+
+---
 ## Post-hoc log (append-only)
 (empty)
