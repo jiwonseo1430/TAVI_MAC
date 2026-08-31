@@ -1,0 +1,8 @@
+# Per-computer configuration — copy this file to config.yml and edit.
+# config.yml is gitignored; NEVER commit it.
+#
+# data_dir: absolute path to the OneDrive data folder for this project
+#           (contains raw/, derived/, output/).
+# The environment variable TAVI_MAC_DATA, if set, overrides this file.
+
+data_dir: "C:/Users/<user>/OneDrive/Research/data/TAVI_MAC"
