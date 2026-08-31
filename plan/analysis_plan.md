@@ -1,0 +1,137 @@
+# Analysis Plan — Reproduce & Verify Preliminary Analysis (MAC and Mortality after TAVI)
+
+**Status:** APPROVED (2026-08-31, by JW Seo — primary = backward selection; sensitivity = S1, S2, S3)
+**Do not execute anything below until Status = APPROVED.**
+
+## 1. Question
+Is mitral annular calcification (MAC) burden (None / Low / High by CT volume)
+independently associated with all-cause mortality after TAVI, and does adding
+MAC group improve model discrimination over clinical risk factors?
+
+This stage reproduces every preliminary Table/Figure in
+`<data_dir>/raw/20260409 table figure-2.docx` from the raw data as
+script-generated outputs, so the manuscript can cite verified numbers.
+
+## 2. Dataset
+- Source: `<data_dir>/derived/tavi_mac_deid.rds` (525 patients, 51 cols; from
+  `01_deidentify.R`).
+- Inclusion/exclusion: none beyond the curated file (N = 525 as-is). Expected
+  events: 102 deaths (`death_final`), time = `time to event` (days).
+- MAC grouping: expected No MAC 269 / Low 220 / High 36 with High cut-off
+  ≥ 717.2 (volume units to confirm). The grouping column
+  (`MAC_vol_transform_group` vs. recomputed from `MAC_vol_transform`) will be
+  verified to reproduce 269/220/36 **before** any model is fitted; the exact
+  column and cut-off used are then recorded in the script header and Methods.
+- Missing data: quantified per variable in `02_*` output. Primary approach:
+  complete-case within each model, with each model's N and event count printed
+  next to it. No imputation at this stage.
+
+## 3. Variables
+| Role | Variable | Type | Units / coding | Rescaling |
+|---|---|---|---|---|
+| Outcome | death_final + time to event | survival | days from TAVI | none |
+| Primary exposure | MAC group | 3-level factor | None (ref) / Low (<717.2) / High (≥717.2) | none |
+| Covariates | Age | continuous | years | none |
+| | Sex | binary | Female vs Male | none |
+| | BMI | continuous | kg/m² | none |
+| | STS score | continuous | % | none |
+| | HTN, DM, CKD, COPD, PAD, CAD, A.fib, prev. stroke, prev. MI, prev. cardiac op | binary | yes vs no | none |
+| | TC, TG, LDL, HDL | continuous | mg/dL | HR per 10 mg/dL |
+| | LVEF | continuous | % | none |
+| | MDPG | binary | ≥5 vs <5 mmHg | none |
+| | RSVP, E/e', MR grade | per Table 1 only | — | none |
+
+## 4. Pre-specified analysis
+All models: Cox proportional hazards, `survival::coxph`, Efron ties. Seed fixed;
+sessionInfo logged per script.
+
+1. **Table 1** — characteristics by MAC group (None/Low/High): mean±SD or n (%);
+   ANOVA / χ² (Fisher if expected <5); matching the preliminary layout.
+2. **Supplementary Table 1** — same variables by vital status (t-test / χ²).
+3. **Table 2** — univariable Cox for each variable listed in preliminary Table 2.
+4. **Multivariable model (PRIMARY) — pre-specified selection procedure**
+   (the original covariate-selection rationale of preliminary Tables 3-1/3-2 is
+   unknown; per decision 2026-08-31 the multivariable analysis is re-done with
+   an explicit procedure):
+   - Candidate pool: all variables with univariable p < 0.05 in step 3.
+   - Collinearity rule (fixed in advance): if both TC and LDL qualify, keep
+     **LDL** only; VIF checked after selection, any VIF > 5 reported.
+   - **MAC group is the exposure and is forced into the model** (never eligible
+     for removal).
+   - Backward elimination on the candidate pool: iteratively remove the
+     covariate with the largest Wald p until all remaining covariates have
+     p < 0.05. Elimination runs on ONE fixed complete-case dataset (complete on
+     the full candidate pool + MAC group + outcome), so N is identical at every
+     step and in the final model (CLAUDE.md §3).
+   - Output: full-candidate model (Table 3-A) and final selected model
+     (Table 3-B), each with N and events.
+5. **Reproduction of preliminary Tables 3-1 / 3-2** — the exact covariate sets
+   from the docx are fit once, for verification/discrepancy reporting only
+   (labeled "preliminary reproduction", not used in the manuscript unless they
+   coincide with the selected model).
+6. **Table 4 (C-index)** — Model 1 = final selected clinical covariates
+   (without MAC), Model 2 = Model 1 + MAC group, both on the same complete-case
+   dataset; Harrell's C, ΔC tested with `compareC` (Kang et al.). The
+   preliminary C-index pairs (0.708→0.732, 0.687→0.722) are reproduced for the
+   discrepancy report only.
+7. **Figure** — Kaplan-Meier by MAC group with log-rank p and number at risk.
+8. **Assumption checks** — Schoenfeld residuals (global + per-covariate PH test)
+   for models 4–5; VIF (reproduce preliminary VIF table); linearity of
+   continuous covariates checked by martingale residuals (reported, not acted on).
+9. **EPV note** — the full candidate model has ~13–14 parameters / 102 events
+   (EPV ≈ 7–8 < 10); reported in output and flagged for Methods/Limitations per
+   CLAUDE.md §3. No covariate is dropped for this reason without a plan update.
+
+### 4a. Sensitivity analyses for covariate selection (choose at approval)
+Selected at approval: **S1, S2, S3** (S4 not included — out of scope).
+- **S1. Clinically pre-specified model (no data-driven selection)** — fixed a
+  priori: STS score + CKD + A.fib + MAC group (STS already aggregates age, sex,
+  DM, LVEF, etc., so it serves as the composite clinical confounder). This is
+  the reviewer-preferred approach; robustness of the MAC HR across S1 vs the
+  primary model is the key claim.
+- **S2. LASSO Cox (`glmnet`)** — all Table 2 variables as candidates, MAC group
+  unpenalized (forced), λ by 10-fold CV (lambda.1se), fixed seed; selected
+  covariates refit in an unpenalized Cox for interpretable HRs.
+- **S3. AIC-based backward selection (`MASS::stepAIC`)** — same candidate pool
+  as primary; retains marginal confounders that p<0.05 elimination discards.
+- ~~S4. Bootstrap stability~~ — not selected; would be post-hoc if added later.
+
+## 5. Decision rules stated in advance
+- Reproduction tolerance: HRs/C-indices matching to published rounding (2 dp)
+  = reproduced. Any mismatch is **reported as a discrepancy**, not "fixed" by
+  changing the model. Discrepancies land in `output/discrepancy_report.md`.
+- Known issues to adjudicate (found while reading the docx — verification
+  targets, not things to silently correct):
+  a. **A.fib inconsistency**: Table 1 reports A.fib 413/525 (78.8%) but
+     Suppl Table 1 reports 82+29=111 (21.1%). One is likely miscoded/inverted.
+     The reproduction will establish which matches the raw data.
+  b. **Table 3-2 CI typos**: BMI 0.94 (2.45–2.69) and A.fib 1.68 (2.96–13.4)
+     have CIs inconsistent with their HRs — presumed transcription errors;
+     reproduction provides the correct values.
+- PH violation (p<0.05): report it; remedy (stratification, time interaction)
+  is a plan amendment, not an on-the-fly change.
+- No threshold, covariate set, or grouping may change to improve any p-value.
+
+## 6. Deliverables
+Scripts (repo, `analysis/scripts/`):
+- `02_prepare.R` — variable derivation/labels, MAC group verification, missingness table → `derived/tavi_mac_analysis.rds`
+- `03_descriptive.R` — Table 1, Supplementary Table 1
+- `04_cox.R` — Table 2 (univariable), primary backward selection (Tables 3-A/3-B),
+  preliminary 3-1/3-2 reproduction, PH/VIF/EPV checks
+- `04s_sensitivity.R` — sensitivity analyses S1 (pre-specified clinical model),
+  S2 (LASSO Cox, MAC unpenalized), S3 (AIC backward)
+- `05_models_cindex.R` — Tables 4, 4-2 (C-index + compareC)
+- `06_km_figure.R` — KM figure
+Outputs (`<data_dir>/output/`): `table1.csv`, `suppl_table1.csv`, `table2.csv`,
+`table3_1.csv`, `table3_2.csv`, `table4.csv`, `fig1_km.png` (+ .pdf),
+`assumption_checks.txt`, `discrepancy_report.md`, per-script logs with sessionInfo.
+
+## 7. Anything explicitly NOT in scope
+- Manuscript text (separate stage after outputs are verified).
+- Any new analysis not in the preliminary docx (e.g., continuous MAC volume
+  spline, competing risks, imputation) — would be post-hoc and needs a plan update.
+- Changing the MAC cut-off (717.2) or group definitions.
+
+---
+## Post-hoc log (append-only)
+(empty)
