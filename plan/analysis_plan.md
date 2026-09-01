@@ -219,6 +219,12 @@ record; the manuscript uses the Amendment-1 outputs.
   C/D absorb the former separate landmark figure (fig3 dropped as a main
   figure; binary landmark version stays as supplement). Figure 2 = 2-panel
   spline (fig2_spline): A whole follow-up / B 1-year mortality.
+- 2026-09-01 — **Univariable screening threshold restated as p<0.10** (user
+  decision; conventional and less prone to missing confounders). Empirically
+  identical to the original p<0.05 pool: no variable falls in 0.05<=p<0.10
+  (nearest: Previous MI p=0.103). Candidate pool, selection path, and all
+  results unchanged; Methods will state p<0.10. Complete-case basis also
+  confirmed: 522/525 (99.4%), 2 of 102 deaths excluded — MI not indicated.
 - 2026-09-01 — **Table presentation finalization** (decisions): Table 1 MR
   collapsed to one binary row "Moderate to severe MR" (grade II/III/IV by the
   half-grades-down recode; n=53) in manuscript tables (5-level factor kept in
