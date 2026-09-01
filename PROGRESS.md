@@ -75,7 +75,13 @@ table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
       late deaths = age/STS; median FU 2.59 y observed / 3.18 y reverse-KM
 
 ### Stage 3 — Manuscript
-- [ ] Draft (Methods/Results first)
+- [x] Plan approved (plan/manuscript_plan.md, 2026-09-01)
+- [x] Full draft written (manuscript/manuscript.md) — all numbers verified
+      against output/ files; [TO CONFIRM] placeholders: center/period/IRB,
+      CT protocol & volume-transformation method, author list
+- [x] Word deliverables: output/Tables_1-4.docx (11_tables_docx.py),
+      output/manuscript.docx (12_manuscript_docx.py)
+- [ ] Fill [TO CONFIRM] items; finalize references
 - [ ] Reviewer audit (review/reviewer_checklist.md)
 - [ ] Submission
 
