@@ -1,6 +1,6 @@
 # Plan — Manuscript Draft (MAC and Mortality after TAVI)
 
-**Status:** DRAFT
+**Status:** APPROVED (2026-09-01, by JW Seo — "승인")
 **Do not execute anything below until Status = APPROVED.**
 
 ## 1. Deliverable
