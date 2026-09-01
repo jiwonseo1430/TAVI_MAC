@@ -55,6 +55,10 @@ table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
 - [x] fig3_landmark_3group (manuscript Fig 3): first-year p<0.0001, gradient
       No>Low>High; post-landmark p=0.41. figS_landmark_binary -> supplement
 - [x] Figure 1 x-axis capped at 7 years
+- [x] fig2_spline re-based to 1-year mortality (log2 MAC HR 1.17, linearity OK);
+      whole-period spline -> figS_spline_fullperiod
+- [x] `10_period_riskfactors.R` — suppl table: first-year deaths = MAC/CKD/A.fib,
+      late deaths = age/STS; median FU 2.59 y observed / 3.18 y reverse-KM
 
 ### Stage 3 — Manuscript
 - [ ] Draft (Methods/Results first)

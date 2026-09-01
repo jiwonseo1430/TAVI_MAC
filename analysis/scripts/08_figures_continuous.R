@@ -54,48 +54,65 @@ print(p); dev.off()
 logmsg("fig1_km_med written")
 
 ## ---------- adjusted spline dose-response ----------
+# fig2_spline: 1-YEAR mortality (Cox censored at 1 y) — main figure, matching
+#   the time-structure finding (plan post-hoc log 2026-09-01)
+# figS_spline_fullperiod: whole follow-up — supplement (average HR under the
+#   PH violation; its nonlinearity p documents why the 1-y frame is used)
 covs <- selc$selected
 cc <- a[a$id %in% selc$cc_ids, ]
 kn <- quantile(cc$log2_mac[cc$mac_vol > 0], c(1/3, 2/3))
-sfit <- coxph(as.formula(paste(
-  "Surv(tte_days, death) ~ splines::ns(log2_mac, knots = kn) +",
-  paste(covs, collapse = " + "))), data = cc)
+cc$t1 <- pmin(cc$tte_days, 365.25); cc$t1[cc$t1 == 0] <- 0.5
+cc$e1 <- as.integer(cc$death == 1 & cc$tte_days <= 365.25)
 
-grid_vol <- c(0, 2^seq(log2(1), log2(8000), length.out = 200) - 1)
-nd <- cc[rep(1, length(grid_vol)), ]          # covariates fixed (cancel in HR)
-nd$log2_mac <- log2(grid_vol + 1)
-tt <- predict(sfit, newdata = nd, type = "terms", se.fit = TRUE)
-scol <- grep("ns\\(log2_mac", colnames(tt$fit))
-lp  <- tt$fit[, scol];  se <- tt$se.fit[, scol]
-lp0 <- lp[1]                                   # reference: volume 0
-df <- data.frame(vol = grid_vol,
-                 hr = exp(lp - lp0),
-                 lo = exp((lp - lp0) - 1.96 * sqrt(se^2 + se[1]^2)),
-                 hi = exp((lp - lp0) + 1.96 * sqrt(se^2 + se[1]^2)))
-logmsg("Spline HR at vol=100: ", sprintf("%.2f", df$hr[which.min(abs(df$vol-100))]),
-       " | 717: ", sprintf("%.2f", df$hr[which.min(abs(df$vol-717))]),
-       " | 2000: ", sprintf("%.2f", df$hr[which.min(abs(df$vol-2000))]))
-
-g <- ggplot(df, aes(vol + 1, hr)) +
-  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.15, fill = "#FC4E07") +
-  geom_line(linewidth = 1, color = "#FC4E07") +
-  geom_hline(yintercept = 1, linetype = 2) +
-  geom_rug(data = data.frame(vol = cc$mac_vol[cc$mac_vol > 0]),
-           aes(x = vol + 1), inherit.aes = FALSE, sides = "b",
-           alpha = 0.25, length = unit(0.02, "npc")) +
-  scale_x_log10(breaks = c(1, 11, 101, 1001, 5001),
-                labels = c("0", "10", "100", "1000", "5000")) +
-  scale_y_log10() +
-  labs(x = expression(paste("MAC volume (", mm^3, ")")),
-       y = "Adjusted hazard ratio (95% CI) vs no MAC",
-       caption = paste("Cox model: ns(log2(vol+1), df=3) +",
-                       paste(covs, collapse = ", "))) +
-  theme_classic(base_size = 13)
-png(file.path(OUTPUT_DIR, "fig2_spline.png"), width = 2100, height = 1600, res = 300)
-print(g); dev.off()
-pdf(file.path(OUTPUT_DIR, "fig2_spline.pdf"), width = 7, height = 5.3)
-print(g); dev.off()
-logmsg("fig2_spline written")
+spline_fig <- function(tvar, evar, stem, ylab) {
+  sfit <- coxph(as.formula(paste(
+    "Surv(", tvar, ",", evar, ") ~ splines::ns(log2_mac, knots = kn) +",
+    paste(covs, collapse = " + "))), data = cc)
+  lfit <- coxph(as.formula(paste(
+    "Surv(", tvar, ",", evar, ") ~ log2_mac +",
+    paste(covs, collapse = " + "))), data = cc)
+  ci <- summary(lfit)$conf.int
+  logmsg(stem, ": events=", sfit$nevent,
+         sprintf("; linear log2 MAC HR %.2f (%.2f-%.2f)", ci[1, 1], ci[1, 3], ci[1, 4]),
+         "; nonlinearity p=",
+         format.pval(anova(lfit, sfit)[2, "Pr(>|Chi|)"], digits = 3))
+  grid_vol <- c(0, 2^seq(log2(1), log2(8000), length.out = 200) - 1)
+  nd <- cc[rep(1, length(grid_vol)), ]        # covariates fixed (cancel in HR)
+  nd$log2_mac <- log2(grid_vol + 1)
+  tt <- predict(sfit, newdata = nd, type = "terms", se.fit = TRUE)
+  scol <- grep("ns\\(log2_mac", colnames(tt$fit))
+  lp <- tt$fit[, scol]; se <- tt$se.fit[, scol]
+  df <- data.frame(vol = grid_vol, hr = exp(lp - lp[1]),
+                   lo = exp((lp - lp[1]) - 1.96 * sqrt(se^2 + se[1]^2)),
+                   hi = exp((lp - lp[1]) + 1.96 * sqrt(se^2 + se[1]^2)))
+  logmsg("  HR at vol 100/717/2000: ",
+         paste(sprintf("%.2f", df$hr[sapply(c(100, 717, 2000),
+               function(v) which.min(abs(df$vol - v)))]), collapse = " / "))
+  g <- ggplot(df, aes(vol + 1, hr)) +
+    geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.15, fill = "#FC4E07") +
+    geom_line(linewidth = 1, color = "#FC4E07") +
+    geom_hline(yintercept = 1, linetype = 2) +
+    geom_rug(data = data.frame(vol = cc$mac_vol[cc$mac_vol > 0]),
+             aes(x = vol + 1), inherit.aes = FALSE, sides = "b",
+             alpha = 0.25, length = unit(0.02, "npc")) +
+    scale_x_log10(breaks = c(1, 11, 101, 1001, 5001),
+                  labels = c("0", "10", "100", "1000", "5000")) +
+    scale_y_log10() +
+    labs(x = expression(paste("MAC volume (", mm^3, ")")), y = ylab,
+         caption = paste("Cox model: ns(log2(vol+1), df=3) +",
+                         paste(covs, collapse = ", "))) +
+    theme_classic(base_size = 13)
+  png(file.path(OUTPUT_DIR, paste0(stem, ".png")), width = 2100, height = 1600,
+      res = 300)
+  print(g); dev.off()
+  pdf(file.path(OUTPUT_DIR, paste0(stem, ".pdf")), width = 7, height = 5.3)
+  print(g); dev.off()
+  logmsg(stem, " written")
+}
+spline_fig("t1", "e1", "fig2_spline",
+           "Adjusted HR for 1-year mortality (95% CI) vs no MAC")
+spline_fig("tte_days", "death", "figS_spline_fullperiod",
+           "Adjusted hazard ratio (95% CI) vs no MAC")
 
 ## ---------- 1-year landmark KM (post-hoc, plan post-hoc log 2026-09-01) ----------
 # Panel A: truncated at 1 year (months axis). Panel B: 1-year survivors,

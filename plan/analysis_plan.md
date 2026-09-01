@@ -209,3 +209,12 @@ record; the manuscript uses the Amendment-1 outputs.
   (motivated by the PH finding), labeled as such.
 - 2026-09-01 — Figure 1 x-axis capped at 7 years (at-risk n beyond 7 y: 0-2);
   presentation-only change.
+- 2026-09-01 — **Figure 2 re-based to 1-year mortality** (Cox censored at 1 y):
+  linear log2 MAC HR 1.17 (1.09-1.25), nonlinearity p=0.136 (linearity holds in
+  the 1-y frame). Whole-period spline (nonlinearity p=0.008) moved to
+  supplement as justification. Post-hoc, motivated by the time-structure finding.
+- 2026-09-01 — **Supplementary period risk-factor table** (10_period_riskfactors.R,
+  primary covariates + age): first-year deaths driven by MAC/CKD/A.fib (age NS);
+  post-1-y deaths driven by age (1.07/y) and STS (1.14) with all cardiac
+  covariates null — supports the background-mortality interpretation of the
+  landmark convergence. Post-hoc.
