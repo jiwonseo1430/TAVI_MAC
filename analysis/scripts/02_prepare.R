@@ -103,6 +103,15 @@ stopifnot(all(table(a$mac_group_med) == c(269, 128, 128)))
 a$any_mac <- as.integer(a$mac_vol > 0)
 logmsg("any_mac: ", paste(table(a$any_mac), collapse = "/"), " (expect 269/256)")
 
+# exposure distribution (cited in manuscript Results; audit finding #8)
+q_all <- quantile(a$mac_vol, c(.25, .5, .75))
+pos_v <- a$mac_vol[a$mac_vol > 0]
+q_pos <- quantile(pos_v, c(.25, .5, .75))
+logmsg(sprintf("MAC volume, overall: median %.1f [IQR %.1f-%.1f], max %.1f mm3",
+               q_all[2], q_all[1], q_all[3], max(a$mac_vol)))
+logmsg(sprintf("MAC volume, among positive (n=%d): median %.1f [IQR %.1f-%.1f], range %.1f-%.1f mm3",
+               length(pos_v), q_pos[2], q_pos[1], q_pos[3], min(pos_v), max(pos_v)))
+
 # MR grade recode (half-grades map DOWN): Trivial->No, G I-II->I,
 # G II-III->II, G III-IV->III
 mr_raw2 <- trimws(as.character(d[["Echo_Mrgrade"]]))

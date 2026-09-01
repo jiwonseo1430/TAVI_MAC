@@ -1,6 +1,8 @@
-# 06_km_figure.R — Kaplan-Meier survival by MAC group (Figure 1).
-# Time axis in years (tte_days / 365.25); log-rank p; number-at-risk table.
-# Output: fig1_km.png (300 dpi), fig1_km.pdf, 06_km_figure_log.txt
+# 06_km_figure.R — KM by the PRELIMINARY 717.2 grouping.
+# REPRODUCTION RECORD ONLY — not a manuscript figure (manuscript Figure 1 is
+# produced by 08_figures_continuous.R). Outputs carry a repro_ prefix so they
+# cannot be confused with current figures (audit finding #36).
+# Output: repro_km_717.png/.pdf, 06_km_figure_log.txt
 
 set.seed(20260831)
 source(file.path("analysis", "scripts", "00_config.R"))
@@ -29,14 +31,14 @@ p <- ggsurvplot(
   break.time.by = 1, xlim = c(0, 8),
   risk.table.height = 0.28, censor = TRUE)
 
-png(file.path(OUTPUT_DIR, "fig1_km.png"), width = 2400, height = 2100,
+png(file.path(OUTPUT_DIR, "repro_km_717.png"), width = 2400, height = 2100,
     res = 300)
 print(p)
 dev.off()
-pdf(file.path(OUTPUT_DIR, "fig1_km.pdf"), width = 8, height = 7)
+pdf(file.path(OUTPUT_DIR, "repro_km_717.pdf"), width = 8, height = 7)
 print(p)
 dev.off()
-logmsg("fig1_km.png / fig1_km.pdf written")
+logmsg("repro_km_717.png / repro_km_717.pdf written")
 
 writeLines("\n--- sessionInfo() ---", log_con)
 writeLines(capture.output(sessionInfo()), log_con)

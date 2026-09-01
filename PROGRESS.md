@@ -81,7 +81,13 @@ table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
       CT protocol & volume-transformation method, author list
 - [x] Word deliverables: output/Tables_1-4.docx (11_tables_docx.py),
       output/manuscript.docx (12_manuscript_docx.py)
-- [ ] Fill [TO CONFIRM] items; finalize references
+- [x] Adversarial audit (review/audit_20260901.md): 14 MAJOR / 24 MINOR / 4 NOTES
+- [x] Batch A+B fixes applied; manuscript rewritten. KEY new result: positive-only
+      log2 MAC HR 1.04 (0.94-1.15, NS) -> framing changed to presence +
+      extreme-burden ("threshold-like"), not smooth dose-response.
+      3-split formalized (31-365 d HR 3.67); trend p=0.003
+- [ ] Batch C: fill [TO CONFIRM] items (center/IRB/CT protocol/definitions/
+      flow/death ascertainment); finalize references; then re-audit
 - [ ] Reviewer audit (review/reviewer_checklist.md)
 - [ ] Submission
 

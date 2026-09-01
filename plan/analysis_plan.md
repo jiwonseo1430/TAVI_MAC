@@ -212,6 +212,16 @@ record; the manuscript uses the Amendment-1 outputs.
 
 ---
 ## Post-hoc log (append-only)
+- 2026-09-01 (audit response) — **p-for-trend** across median-split categories
+  (ordinal score in the adjusted model): p=0.003. **Positive-only continuous
+  analysis** (N=256, 63 deaths): log2 MAC HR 1.04 (0.94-1.15), p=0.458 —
+  reported honestly in the manuscript: the full-cohort per-doubling HR mainly
+  reflects presence-vs-absence plus the extreme upper tail, not a smooth
+  gradient among positives. Both in 07_continuous_primary.R
+  (posthoc_addenda.csv). **3-interval split formalized** in 09_time_interval.R
+  (table_time_interval_3split.csv; current data: 0-30 d 2.90 [0.91-9.30],
+  31-365 d 3.67 [1.83-7.35], >365 d 0.99) — replaces the stale scratch values
+  (3.84/3.58) that had been quoted in the draft (audit finding #1).
 - 2026-09-01 — **3-interval period HRs (0-30 d / 31-365 d / >365 d)**, run to
   distinguish periprocedural from early-phase mortality (user request).
   Result: binary MAC HR 3.84 / 3.58 / 0.99 — excess risk spans the whole first

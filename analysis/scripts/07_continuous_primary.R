@@ -96,6 +96,36 @@ write.csv(hr_rows(catfit)[, 1:3],
           row.names = FALSE, fileEncoding = "UTF-8")
 logmsg("Median-split categorical model: N=", catfit$n)
 
+## ---------- POST-HOC addenda (audit 2026-09-01, findings #4 and #14) ----------
+# (i) p-for-trend across the median-split categories (group as ordinal score)
+# (ii) continuous dose-response restricted to MAC-positive patients
+#      (zero-inflation check: is the per-doubling effect driven only by the
+#       presence-vs-absence contrast?)
+trend_fit <- coxph(as.formula(paste(
+  "Surv(tte_days, death) ~ as.numeric(mac_group_med) +",
+  paste(covs, collapse = " + "))), data = cc)
+trend_p <- summary(trend_fit)$coefficients[1, "Pr(>|z|)"]
+logmsg("POST-HOC p-for-trend (median-split, ordinal): ", fmt_p(trend_p))
+
+pos <- cc[cc$mac_vol > 0, ]
+pos_fit <- coxph(as.formula(paste("Surv(tte_days, death) ~ log2_mac +",
+                                  paste(covs, collapse = " + "))), data = pos)
+ps <- summary(pos_fit)
+logmsg("POST-HOC positive-only (N=", pos_fit$n, ", events=", pos_fit$nevent,
+       "): log2 MAC HR ", sprintf("%.2f (%.2f-%.2f) p=%s",
+       ps$conf.int[1, 1], ps$conf.int[1, 3], ps$conf.int[1, 4],
+       fmt_p(ps$coefficients[1, "Pr(>|z|)"])))
+write.csv(data.frame(
+  item = c("p_for_trend_median_groups",
+           "positive_only_log2_mac_HR", "positive_only_N", "positive_only_events"),
+  value = c(fmt_p(trend_p),
+            sprintf("%.2f (%.2f-%.2f); p=%s", ps$conf.int[1, 1],
+                    ps$conf.int[1, 3], ps$conf.int[1, 4],
+                    fmt_p(ps$coefficients[1, "Pr(>|z|)"])),
+            pos_fit$n, pos_fit$nevent)),
+  file.path(OUTPUT_DIR, "posthoc_addenda.csv"), row.names = FALSE)
+logmsg("posthoc_addenda.csv written")
+
 ## ---------- secondary: binary No MAC vs MAC (Amendment 2) ----------
 binfit <- fit_with(covs, expo = "any_mac")
 write.csv(hr_rows(binfit)[, 1:3],

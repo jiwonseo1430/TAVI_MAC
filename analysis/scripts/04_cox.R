@@ -68,11 +68,13 @@ t2df <- do.call(rbind, t2)[, 1:3]
 write.csv(t2df, file.path(OUTPUT_DIR, "table2.csv"), row.names = FALSE,
           fileEncoding = "UTF-8")
 logmsg("table2.csv written; N used per model = complete cases per variable")
-logmsg("Univariable p<0.05: ",
-       paste(setdiff(names(univ_p)[univ_p < 0.05], MAC_EXPO), collapse = ", "))
+# entry threshold p<0.10 (plan log 2026-09-01); empirically identical to
+# p<0.05 in this data — nearest excluded variable is Previous MI (p=0.103)
+logmsg("Univariable p<0.10 (candidate entry): ",
+       paste(setdiff(names(univ_p)[univ_p < 0.10], MAC_EXPO), collapse = ", "))
 
 ## ---------- Primary: backward selection ----------
-cand <- setdiff(names(univ_p)[univ_p < 0.05], MAC_EXPO)
+cand <- setdiff(names(univ_p)[univ_p < 0.10], MAC_EXPO)
 if (all(c("tc_10", "ldl_10") %in% cand)) {
   cand <- setdiff(cand, "tc_10")
   logmsg("Collinearity rule applied: TC removed, LDL kept")

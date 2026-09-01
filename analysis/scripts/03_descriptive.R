@@ -21,8 +21,10 @@ a <- readRDS(file.path(DERIVED_DIR, "tavi_mac_analysis.rds"))
 
 CONT <- c(age = "Age", bmi = "BMI", sts = "STS score (%)",
           tc = "TC (mg/dL)", tg = "TG (mg/dL)", ldl = "LDL (mg/dL)",
-          hdl = "HDL (mg/dL)", lvef = "LVEF (%)", rsvp = "RSVP (mmHg)",
+          hdl = "HDL (mg/dL)", lvef = "LVEF (%)", rsvp = "RVSP (mmHg)",
           ee_prime = "E/e'")
+# right-skewed variables: median [IQR], Kruskal-Wallis / Wilcoxon (audit #28)
+SKEW <- c("tg")
 BIN <- c(sex_female = "Sex (Female)", htn = "HTN", dm = "DM", ckd = "CKD",
          copd = "COPD", pad = "PAD", cad = "CAD", afib = "A.fib",
          prev_stroke = "Previous stroke", prev_mi = "Previous MI",
@@ -56,9 +58,18 @@ build_table <- function(g, glabels) {
   ncol_g <- length(glabels)
   for (v in ORDER) {
     if (v %in% names(CONT)) {
-      cells <- c(msd(a[[v]]), vapply(glabels, function(l) msd(a[[v]][g == l]), ""))
-      p <- if (ncol_g == 2) t.test(a[[v]] ~ g)$p.value
-           else summary(aov(a[[v]] ~ g))[[1]][["Pr(>F)"]][1]
+      if (v %in% SKEW) {
+        miqr <- function(x) sprintf("%.1f [%.1f-%.1f]", median(x, na.rm = TRUE),
+                                    quantile(x, .25, na.rm = TRUE),
+                                    quantile(x, .75, na.rm = TRUE))
+        cells <- c(miqr(a[[v]]), vapply(glabels, function(l) miqr(a[[v]][g == l]), ""))
+        p <- if (ncol_g == 2) wilcox.test(a[[v]] ~ g)$p.value
+             else kruskal.test(a[[v]] ~ g)$p.value
+      } else {
+        cells <- c(msd(a[[v]]), vapply(glabels, function(l) msd(a[[v]][g == l]), ""))
+        p <- if (ncol_g == 2) t.test(a[[v]] ~ g)$p.value
+             else summary(aov(a[[v]] ~ g))[[1]][["Pr(>F)"]][1]
+      }
       add(CONT[[v]], cells, fmt_p(p))
     } else if (v %in% names(BIN)) {
       cells <- c(npct(a[[v]]), vapply(glabels, function(l) npct(a[[v]][g == l]), ""))
@@ -110,16 +121,16 @@ ORDER <- c("age", "sex_female", "bmi", "sts", "htn", "dm", "ckd", "copd",
 gd <- factor(a$death, levels = c(0, 1), labels = c("Survived", "Deceased"))
 ORDER <- setdiff(ORDER, "death")
 ts <- build_table(gd, levels(gd))
-ts <- rbind(ts, {
-  p <- fmt_p(cat_p(a$mac_group, gd))
-  hdr <- c("MAC Group", "", "", "", p)
-  hdr
-})
-for (lev in levels(a$mac_group)) {
-  n0 <- sum(a$mac_group == lev & a$death == 0); N0 <- sum(a$death == 0)
-  n1 <- sum(a$mac_group == lev & a$death == 1); N1 <- sum(a$death == 1)
-  ts <- rbind(ts, c(paste0("  ", lev, " MAC"),
-                    npct(a$mac_group, lev),
+# MAC volume group (median split — same grouping as Table S2/Fig 1B; audit #23)
+ts <- rbind(ts, c("MAC volume group", "", "", "",
+                  fmt_p(cat_p(a$mac_group_med, gd))))
+glab <- c(None = "No MAC", Low = "Low MAC (<=108.6 mm3)",
+          High = "High MAC (>108.6 mm3)")
+for (lev in levels(a$mac_group_med)) {
+  n0 <- sum(a$mac_group_med == lev & a$death == 0); N0 <- sum(a$death == 0)
+  n1 <- sum(a$mac_group_med == lev & a$death == 1); N1 <- sum(a$death == 1)
+  ts <- rbind(ts, c(paste0("  ", glab[[lev]]),
+                    npct(a$mac_group_med, lev),
                     sprintf("%d (%.1f%%)", n0, 100*n0/N0),
                     sprintf("%d (%.1f%%)", n1, 100*n1/N1), ""))
 }

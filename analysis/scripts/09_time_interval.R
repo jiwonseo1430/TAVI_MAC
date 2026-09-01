@@ -72,6 +72,39 @@ write.csv(tt, file.path(OUTPUT_DIR, "table_time_interval.csv"),
           row.names = FALSE, fileEncoding = "UTF-8")
 logmsg("table_time_interval.csv written")
 
+## ---------- POST-HOC: 3-interval split (0-30 d / 31-365 d / >365 d) ----------
+# Distinguishes periprocedural from early-phase mortality (plan post-hoc log
+# 2026-09-01; formalized after audit finding #1 — cited numbers must be
+# script-generated on the current dataset).
+sp3 <- survSplit(Surv(tte_days, death) ~ ., data = cc, cut = c(30, CUT),
+                 episode = "period")
+sp3$period <- factor(sp3$period, 1:3, c("0-30 d", "31-365 d", ">365 d"))
+logmsg("3-split events by period: ",
+       paste(tapply(sp3$death, sp3$period, sum), collapse = " / "))
+rows3 <- list()
+for (expo in c("log2_mac", "any_mac")) {
+  f <- as.formula(paste("Surv(tstart, tte_days, death) ~", expo, ":period +",
+                        paste(covs, collapse = " + ")))
+  s <- summary(coxph(f, data = sp3))
+  idx <- grep(paste0("^", expo, ":period"), rownames(s$coefficients))
+  lab <- if (expo == "log2_mac") "log2 MAC (per doubling)" else "MAC vs No MAC"
+  for (k in seq_along(idx)) {
+    ci <- s$conf.int[idx[k], ]
+    rows3[[length(rows3) + 1]] <- data.frame(
+      exposure = lab, period = levels(sp3$period)[k],
+      `HR (95% CI)` = sprintf("%.2f (%.2f-%.2f)", ci[1], ci[3], ci[4]),
+      `p-value` = fmt_p(s$coefficients[idx[k], "Pr(>|z|)"]),
+      check.names = FALSE)
+    logmsg("  ", lab, " ", levels(sp3$period)[k], ": ",
+           sprintf("%.2f (%.2f-%.2f) p=%s", ci[1], ci[3], ci[4],
+                   fmt_p(s$coefficients[idx[k], "Pr(>|z|)"])))
+  }
+}
+write.csv(do.call(rbind, rows3),
+          file.path(OUTPUT_DIR, "table_time_interval_3split.csv"),
+          row.names = FALSE, fileEncoding = "UTF-8")
+logmsg("table_time_interval_3split.csv written (POST-HOC)")
+
 writeLines("\n--- sessionInfo() ---", log_con)
 writeLines(capture.output(sessionInfo()), log_con)
 close(log_con)
