@@ -173,5 +173,30 @@ Stage-2 outputs from the original grouping remain on disk as the reproduction
 record; the manuscript uses the Amendment-1 outputs.
 
 ---
+## Amendment 2 — presentation, PH remedy, MR-grade recode (APPROVED 2026-09-01, by JW Seo)
+
+1. **Presentation categories become binary**: No MAC (vol=0, n=269) vs MAC
+   (vol>0, n=256). Manuscript Table 1 and the main KM figure use this split;
+   an adjusted binary Cox model (same covariates as the primary) is reported
+   as a secondary model. The median-split 3-group Table 1 / KM / Cox move to
+   the supplement. Continuous log2 MAC remains the PRIMARY inference.
+2. **PH remedy (violation p=0.016/0.023/0.015)**: period-specific HRs via
+   counting-process split at 1 year (survSplit at 365.25 d): report HRs for
+   0-1 y and >1 y for the continuous exposure and the binary exposure
+   (covariates held constant; period difference tested by interaction Wald p).
+   Whole-period HRs remain reported with the PH note.
+3. **MR-grade recode (resolves discrepancy 1c)**: half-grades map DOWN:
+   Trivial→No, G I-II→I, G II-III→II, G III-IV→III. Final levels
+   No/I/II/III/IV = 262/210/39/12/2 (all 525 classified, no exclusions).
+   Used in all manuscript tables; the old 3-category variable is kept only for
+   the preliminary-reproduction record.
+4. **Deliverables**: `09_time_interval.R` (new); updates to `02_prepare.R`
+   (any_mac, mr_grade5), `03_descriptive.R` (table1_binary.csv = manuscript
+   Table 1; med-group and by-death tables switch to mr_grade5),
+   `07_continuous_primary.R` (adjusted binary model added),
+   `08_figures_continuous.R` (fig1_km_binary = main; fig1_km_med = supplement).
+   Outputs: table1_binary.csv, table_time_interval.csv, fig1_km_binary.png/.pdf.
+
+---
 ## Post-hoc log (append-only)
 (empty)
