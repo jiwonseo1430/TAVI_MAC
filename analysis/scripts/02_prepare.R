@@ -99,6 +99,23 @@ logmsg("median of positive volumes = ", round(med_pos, 1),
        "; mac_group_med: ", paste(table(a$mac_group_med), collapse = "/"))
 stopifnot(all(table(a$mac_group_med) == c(269, 128, 128)))
 
+# Amendment 2: binary presentation group and 5-level MR grade
+a$any_mac <- as.integer(a$mac_vol > 0)
+logmsg("any_mac: ", paste(table(a$any_mac), collapse = "/"), " (expect 269/256)")
+
+# MR grade recode (half-grades map DOWN): Trivial->No, G I-II->I,
+# G II-III->II, G III-IV->III
+mr_raw2 <- trimws(as.character(d[["Echo_Mrgrade"]]))
+mr_map <- c("No" = "No", "Trivial" = "No",
+            "G I" = "I", "G I-II" = "I",
+            "G II" = "II", "G II-III" = "II",
+            "G III" = "III", "G III-IV" = "III",
+            "G IV" = "IV")
+a$mr_grade5 <- factor(mr_map[mr_raw2], levels = c("No", "I", "II", "III", "IV"))
+logmsg("mr_grade5: ", paste(table(a$mr_grade5, useNA = "ifany"), collapse = "/"),
+       " (expect 262/210/39/12/2)")
+stopifnot(sum(is.na(a$mr_grade5)) == 0)
+
 # non-numeric coercions introduced how many NAs?
 logmsg("hdl non-numeric -> NA: ", sum(is.na(a$hdl)) ,
        " | afib NA: ", sum(is.na(a$afib)))

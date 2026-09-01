@@ -1,11 +1,13 @@
 # PROGRESS — TAVI_MAC
 
-**Resume point (for next computer):** Amendment 1 (continuous MAC primary +
-median-split categories) executed; outputs in `<data_dir>/output/` (07/08
-scripts). TWO DECISIONS PENDING before manuscript: (1) MR-grade handling
-(discrepancy report 1c); (2) PH violation of the MAC exposure itself
-(cox.zph p=0.016 continuous / 0.023 categorical) — remedy (e.g., time-interval
-HRs) needs a plan amendment. Then: manuscript drafting.
+**Resume point (for next computer):** Amendments 1+2 executed; analysis stage
+COMPLETE. All decisions resolved (continuous primary; binary No-MAC-vs-MAC
+presentation; 1-year period HRs for the PH violation; MR grade recoded to
+No/I/II/III/IV with half-grades mapped down). Key finding: MAC effect is
+confined to the first year (binary HR 3.63 in 0-1 y vs 0.99 after; interaction
+p=0.003). Next step: manuscript drafting (Methods/Results) from
+`<data_dir>/output/` — table1_binary, table2, table3c_final, table3c_binary,
+table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
 
 ## Checklist
 
@@ -37,7 +39,15 @@ HRs) needs a plan amendment. Then: manuscript drafting.
       median-split Low 1.87 / High 2.02; S1-S3 all significant; C 0.719→0.736
       (p=0.197) / →0.740 categorical (p=0.085); nonlinearity p=0.008
 - [x] `08_figures_continuous.R` — fig1_km_med (log-rank p=0.021), fig2_spline
-- [ ] **PH violation of MAC exposure (p=0.016/0.023) — decision needed**
+- [x] PH violation of MAC exposure (p=0.016/0.023) — resolved by Amendment 2
+
+### Stage 2c — Amendment 2: binary presentation, period HRs, MR recode
+- [x] MR grade recoded No/I/II/III/IV = 262/210/39/12/2 (half-grades down; no exclusions)
+- [x] `03` — table1_binary.csv (manuscript Table 1), 5-level MR in all new tables
+- [x] `07` — adjusted binary model: MAC vs No MAC HR 1.94 (1.28-2.95)
+- [x] `08` — fig1_km_binary (main; log-rank p=0.006); fig1_km_med -> supplement
+- [x] `09_time_interval.R` — 0-1 y vs >1 y: log2 MAC 1.16 vs 0.99 (int p=0.004);
+      binary 3.63 (1.96-6.74) vs 0.99 (0.54-1.80) (int p=0.003)
 
 ### Stage 3 — Manuscript
 - [ ] Draft (Methods/Results first)

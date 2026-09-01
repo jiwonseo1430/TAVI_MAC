@@ -19,7 +19,24 @@ a <- readRDS(file.path(DERIVED_DIR, "tavi_mac_analysis.rds"))
 selc <- readRDS(file.path(DERIVED_DIR, "model_selection_continuous.rds"))
 a$tte_years <- a$tte_days / 365.25
 
-## ---------- KM by median-split group ----------
+## ---------- KM binary: No MAC vs MAC (Amendment 2; manuscript Figure 1) ----------
+a$any_mac_f <- factor(a$any_mac, levels = 0:1, labels = c("No MAC", "MAC"))
+fitb <- survfit(Surv(tte_years, death) ~ any_mac_f, data = a)
+lrb <- survdiff(Surv(tte_years, death) ~ any_mac_f, data = a)
+logmsg("Log-rank (binary): chisq=", sprintf("%.2f", lrb$chisq), ", p=",
+       format.pval(pchisq(lrb$chisq, 1, lower.tail = FALSE), digits = 3))
+pb <- ggsurvplot(fitb, data = a, risk.table = TRUE, pval = TRUE,
+                 xlab = "Years after TAVI", ylab = "Survival probability",
+                 legend.title = "", legend.labs = c("No MAC", "MAC"),
+                 palette = c("#2E9FDF", "#FC4E07"),
+                 break.time.by = 1, xlim = c(0, 8), risk.table.height = 0.25)
+png(file.path(OUTPUT_DIR, "fig1_km_binary.png"), width = 2400, height = 2100, res = 300)
+print(pb); dev.off()
+pdf(file.path(OUTPUT_DIR, "fig1_km_binary.pdf"), width = 8, height = 7)
+print(pb); dev.off()
+logmsg("fig1_km_binary written")
+
+## ---------- KM by median-split group (supplement) ----------
 fit <- survfit(Surv(tte_years, death) ~ mac_group_med, data = a)
 lr <- survdiff(Surv(tte_years, death) ~ mac_group_med, data = a)
 logmsg("Log-rank (median groups): chisq=", sprintf("%.2f", lr$chisq),

@@ -96,6 +96,13 @@ write.csv(hr_rows(catfit)[, 1:3],
           row.names = FALSE, fileEncoding = "UTF-8")
 logmsg("Median-split categorical model: N=", catfit$n)
 
+## ---------- secondary: binary No MAC vs MAC (Amendment 2) ----------
+binfit <- fit_with(covs, expo = "any_mac")
+write.csv(hr_rows(binfit)[, 1:3],
+          file.path(OUTPUT_DIR, "table3c_binary.csv"),
+          row.names = FALSE, fileEncoding = "UTF-8")
+logmsg("Binary (No MAC vs MAC) model: N=", binfit$n)
+
 ## ---------- sensitivity: old 717.2 grouping (data-derived label) ----------
 oldfit <- fit_with(covs, expo = "mac_group")
 mx <- maxstat::maxstat.test(Surv(tte_days, death) ~ mac_vol, data = a,
@@ -107,6 +114,7 @@ logmsg("717.2-grouping sensitivity (DATA-DERIVED cutpoint): maxstat estimated cu
 ## ---------- S1-S3 with continuous exposure ----------
 out <- list(
   primary = hr_rows(final_fit, "Primary (backward, log2 MAC forced)"),
+  binary = hr_rows(binfit, "Secondary binary (No MAC vs MAC)"),
   categories = hr_rows(catfit, "Secondary categorical (median split)"),
   old717 = hr_rows(oldfit, "Sensitivity: 717.2 grouping (data-derived cutpoint)"))
 

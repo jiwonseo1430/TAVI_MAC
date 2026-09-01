@@ -76,17 +76,35 @@ build_table <- function(g, glabels) {
   out
 }
 
-# Table 1: by MAC group — 717.2 grouping (reproduction record) and
-# median-split grouping (Amendment 1; manuscript table)
-for (gv in c("mac_group", "mac_group_med")) {
-  g1 <- a[[gv]]
+# Table 1 variants:
+#   table1.csv         — 717.2 grouping, 3-cat MR  (preliminary reproduction record)
+#   table1_binary.csv  — No MAC vs MAC, 5-level MR (Amendment 2; manuscript Table 1)
+#   table1_medgroup.csv— median-split 3 groups, 5-level MR (supplement)
+runs <- list(
+  list(gv = "mac_group", fn = "table1.csv", mr = "mr_grade",
+       labs = function(g) sprintf("%s MAC (N=%d)", c("No", "Low", "High"), table(g))),
+  list(gv = "any_mac", fn = "table1_binary.csv", mr = "mr_grade5",
+       labs = function(g) sprintf("%s (N=%d)", c("No MAC", "MAC"), table(g))),
+  list(gv = "mac_group_med", fn = "table1_medgroup.csv", mr = "mr_grade5",
+       labs = function(g) sprintf("%s MAC (N=%d)", c("No", "Low", "High"), table(g))))
+for (r in runs) {
+  FACT <- setNames("MR grade", r$mr)
+  g1 <- a[[r$gv]]
+  if (!is.factor(g1)) g1 <- factor(g1, levels = c(0, 1))
+  ORDER_run <- sub("^mr_grade$", r$mr, ORDER)
+  ORDER <- ORDER_run   # build_table reads ORDER/FACT from the enclosing env
   t1 <- build_table(g1, levels(g1))
-  names(t1)[3:5] <- sprintf("%s MAC (N=%d)", c("No", "Low", "High"), table(g1))
-  fn <- if (gv == "mac_group") "table1.csv" else "table1_medgroup.csv"
-  write.csv(t1, file.path(OUTPUT_DIR, fn), row.names = FALSE,
+  names(t1)[3:(2 + nlevels(g1))] <- r$labs(g1)
+  write.csv(t1, file.path(OUTPUT_DIR, r$fn), row.names = FALSE,
             fileEncoding = "UTF-8")
-  logmsg(fn, " written (", nrow(t1), " rows)")
+  logmsg(r$fn, " written (", nrow(t1), " rows)")
 }
+# restore full ORDER (5-level MR) for the by-death supplementary table below
+ORDER <- c("age", "sex_female", "bmi", "sts", "htn", "dm", "ckd", "copd",
+           "pad", "cad", "afib", "prev_stroke", "prev_mi", "prev_cardiac_op",
+           "tc", "tg", "ldl", "hdl", "lvef", "mdpg_ge5", "rsvp", "ee_prime",
+           "mr_grade5", "death")
+FACT <- c(mr_grade5 = "MR grade")
 
 # Supplementary Table 1: by vital status (exclude the death row itself)
 gd <- factor(a$death, levels = c(0, 1), labels = c("Survived", "Deceased"))
