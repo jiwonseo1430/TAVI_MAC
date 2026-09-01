@@ -19,44 +19,65 @@ a <- readRDS(file.path(DERIVED_DIR, "tavi_mac_analysis.rds"))
 selc <- readRDS(file.path(DERIVED_DIR, "model_selection_continuous.rds"))
 a$tte_years <- a$tte_days / 365.25
 
-## ---------- Figure 1 (2-panel, decision 2026-09-01): whole-period KM ----------
-# A = No MAC vs MAC (binary), B = None/Low/High (median split).
-# x-axis capped at 7 years (at-risk n beyond 7 y is 0-2).
+## ---------- Figure 1 (4-panel, decision 2026-09-01): KM ----------
+# A = binary, whole follow-up (0-7 y) | B = median 3-group, whole follow-up
+# C = 3-group, first year (months)    | D = 3-group, 1-year landmark
+# (C/D absorb the former separate landmark figure.)
 a$any_mac_f <- factor(a$any_mac, levels = 0:1, labels = c("No MAC", "MAC"))
+LM <- 365.25
+a$t_m <- pmin(a$tte_days, LM) / 30.4375
+a$e_m <- as.integer(a$death == 1 & a$tte_days <= LM)
+blm <- a[a$tte_days > LM, ]
+blm$t_b <- (blm$tte_days - LM) / 365.25
 
-km_panel <- function(gvar, labs, pal, title) {
-  fit <- eval(bquote(survfit(Surv(tte_years, death) ~ .(as.name(gvar)),
-                             data = a)))
-  df <- length(labs) - 1
-  p <- pchisq(eval(bquote(survdiff(Surv(tte_years, death) ~ .(as.name(gvar)),
-                                   data = a)))$chisq, df, lower.tail = FALSE)
+km_panel <- function(data, tvar, evar, gvar, labs, pal, title, xlab, brk,
+                     xlim, ylim, pc) {
+  fit <- eval(bquote(survfit(Surv(.(as.name(tvar)), .(as.name(evar))) ~
+                               .(as.name(gvar)), data = .(data))))
+  p <- pchisq(eval(bquote(survdiff(Surv(.(as.name(tvar)), .(as.name(evar))) ~
+                                     .(as.name(gvar)), data = .(data))))$chisq,
+              length(labs) - 1, lower.tail = FALSE)
   logmsg("Fig1 ", title, ": log-rank p=", format.pval(p, digits = 3))
   ptxt <- if (p < 1e-4) "p < 0.0001" else sprintf("p = %.3f", p)
-  ggsurvplot(fit, data = a, risk.table = TRUE, pval = ptxt,
-             xlab = "Years after TAVI", ylab = "Survival probability",
+  ggsurvplot(fit, data = eval(data), risk.table = TRUE, pval = ptxt,
+             pval.coord = pc, xlab = xlab, ylab = "Survival probability",
              legend.title = "", legend.labs = labs, palette = pal,
-             break.time.by = 1, xlim = c(0, 7),
-             risk.table.height = 0.3, title = title)
+             break.time.by = brk, xlim = xlim, ylim = ylim,
+             risk.table.height = 0.32, title = title)
 }
-k1 <- km_panel("any_mac_f", c("No MAC", "MAC"),
-               c("#2E9FDF", "#FC4E07"), "A. MAC presence")
-k2 <- km_panel("mac_group_med", c("No MAC", "Low MAC", "High MAC"),
-               c("#2E9FDF", "#E7B800", "#FC4E07"), "B. MAC volume group")
-g1 <- ggpubr::ggarrange(k1$plot + theme(legend.position = "top"),
-                        k2$plot + theme(legend.position = "top"),
-                        k1$table, k2$table,
-                        ncol = 2, nrow = 2, heights = c(3, 1.2))
-png(file.path(OUTPUT_DIR, "fig1_km_2panel.png"), width = 3600, height = 2000,
+pal2 <- c("#2E9FDF", "#FC4E07")
+pal3 <- c("#2E9FDF", "#E7B800", "#FC4E07")
+labs3 <- c("No MAC", "Low MAC", "High MAC")
+kA <- km_panel(quote(a), "tte_years", "death", "any_mac_f",
+               c("No MAC", "MAC"), pal2, "A. MAC presence, whole follow-up",
+               "Years after TAVI", 1, c(0, 7), c(0, 1), c(0.4, 0.12))
+kB <- km_panel(quote(a), "tte_years", "death", "mac_group_med", labs3, pal3,
+               "B. MAC volume group, whole follow-up",
+               "Years after TAVI", 1, c(0, 7), c(0, 1), c(0.4, 0.12))
+kC <- km_panel(quote(a), "t_m", "e_m", "mac_group_med", labs3, pal3,
+               "C. First year after TAVI",
+               "Months after TAVI", 3, c(0, 12), c(0.75, 1), c(0.5, 0.78))
+kD <- km_panel(quote(blm), "t_b", "death", "mac_group_med", labs3, pal3,
+               "D. Conditional on 1-year survival",
+               "Years after 1-year landmark", 1, c(0, 5), c(0.5, 1),
+               c(0.3, 0.55))
+g1 <- ggpubr::ggarrange(
+  kA$plot + theme(legend.position = "top"), kB$plot + theme(legend.position = "top"),
+  kA$table, kB$table,
+  kC$plot + theme(legend.position = "top"), kD$plot + theme(legend.position = "top"),
+  kC$table, kD$table,
+  ncol = 2, nrow = 4, heights = c(3, 1.3, 3, 1.3))
+png(file.path(OUTPUT_DIR, "fig1_km_4panel.png"), width = 3600, height = 4200,
     res = 300)
 print(g1); dev.off()
-pdf(file.path(OUTPUT_DIR, "fig1_km_2panel.pdf"), width = 12, height = 6.7)
+pdf(file.path(OUTPUT_DIR, "fig1_km_4panel.pdf"), width = 12, height = 14)
 print(g1); dev.off()
-logmsg("fig1_km_2panel written")
+logmsg("fig1_km_4panel written")
 
 ## ---------- adjusted spline dose-response ----------
-# fig2_spline (2-panel, decision 2026-09-01): A = 1-year mortality (Cox
-# censored at 1 y), B = whole follow-up. Panel B is the average HR under the
-# PH violation; its nonlinearity p documents why the 1-y frame leads.
+# fig2_spline (2-panel, decision 2026-09-01): A = whole follow-up,
+# B = 1-year mortality (Cox censored at 1 y). Panel A is the average HR under
+# the PH violation; panel B matches the time-structure finding.
 covs <- selc$selected
 cc <- a[a$id %in% selc$cc_ids, ]
 kn <- quantile(cc$log2_mac[cc$mac_vol > 0], c(1/3, 2/3))
@@ -102,12 +123,12 @@ spline_panel <- function(tvar, evar, stem, ylab, title) {
     theme_classic(base_size = 12)
   g
 }
-g2a <- spline_panel("t1", "e1", "fig2A (0-1y)",
-                    "Adjusted HR for 1-year mortality (95% CI) vs no MAC",
-                    "A. First-year mortality")
-g2b <- spline_panel("tte_days", "death", "fig2B (whole follow-up)",
+g2a <- spline_panel("tte_days", "death", "fig2A (whole follow-up)",
                     "Adjusted HR (95% CI) vs no MAC",
-                    "B. Whole follow-up")
+                    "A. Whole follow-up")
+g2b <- spline_panel("t1", "e1", "fig2B (0-1y)",
+                    "Adjusted HR for 1-year mortality (95% CI) vs no MAC",
+                    "B. First-year mortality")
 g2 <- ggpubr::ggarrange(g2a, g2b, ncol = 2)
 png(file.path(OUTPUT_DIR, "fig2_spline.png"), width = 3600, height = 1500,
     res = 300)
@@ -165,8 +186,8 @@ landmark_fig <- function(gvar, labs, pal, stem) {
   print(gg); dev.off()
   logmsg(stem, " written")
 }
-landmark_fig("mac_group_med", c("No MAC", "Low MAC", "High MAC"),
-             c("#2E9FDF", "#E7B800", "#FC4E07"), "fig3_landmark_3group")
+# 3-group landmark panels moved into Figure 1 (C/D); only the binary version
+# remains here, as a supplement.
 landmark_fig("any_mac_f", c("No MAC", "MAC"),
              c("#2E9FDF", "#FC4E07"), "figS_landmark_binary")
 
