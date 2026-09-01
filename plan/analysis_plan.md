@@ -219,6 +219,12 @@ record; the manuscript uses the Amendment-1 outputs.
   C/D absorb the former separate landmark figure (fig3 dropped as a main
   figure; binary landmark version stays as supplement). Figure 2 = 2-panel
   spline (fig2_spline): A whole follow-up / B 1-year mortality.
+- 2026-09-01 — **Table presentation finalization** (decisions): Table 1 MR
+  collapsed to one binary row "Moderate to severe MR" (grade II/III/IV by the
+  half-grades-down recode; n=53) in manuscript tables (5-level factor kept in
+  the dataset). Table 2 MAC rows replaced with the Amendment-1/2 exposures:
+  per-doubling 1.08 (1.03-1.14), any MAC 1.74 (1.17-2.60), median-split
+  Low 1.67 / High 1.82 (old 717.2 rows removed from the manuscript table).
 - 2026-09-01 — **Supplementary period risk-factor table** (10_period_riskfactors.R,
   primary covariates + age): first-year deaths driven by MAC/CKD/A.fib (age NS);
   post-1-y deaths driven by age (1.07/y) and STS (1.14) with all cardiac

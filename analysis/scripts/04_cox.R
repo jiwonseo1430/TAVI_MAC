@@ -31,7 +31,11 @@ UNIV <- c(age = "Age", sex_female = "Sex (Female)", bmi = "BMI",
           tc_10 = "TC (per 10 mg/dL)", tg_10 = "TG (per 10 mg/dL)",
           ldl_10 = "LDL (per 10 mg/dL)", hdl_10 = "HDL (per 10 mg/dL)",
           lvef = "LVEF (%)", mdpg_ge5 = "MDPG (>=5 vs <5 mmHg)",
-          mac_group = "MAC Group (Ref: None)")
+          # MAC exposures per Amendments 1-2 (continuous / binary / median split)
+          log2_mac = "MAC volume (per doubling)",
+          any_mac = "MAC (vs No MAC)",
+          mac_group_med = "MAC volume group (Ref: None)")
+MAC_EXPO <- c("log2_mac", "any_mac", "mac_group_med")
 
 fmt_p <- function(p) ifelse(p < 0.001, "<0.001", sprintf("%.3f", p))
 hr_rows <- function(fit, label_map = NULL) {
@@ -50,10 +54,14 @@ t2 <- list(); univ_p <- c()
 for (v in names(UNIV)) {
   fit <- coxph(as.formula(paste("Surv(tte_days, death) ~", v)), data = a)
   r <- hr_rows(fit)
-  r$term <- if (v == "mac_group") sub("mac_group", "  ", r$term) else UNIV[[v]]
+  if (v == "mac_group_med") {
+    r <- rbind(data.frame(term = UNIV[[v]], `HR (95% CI)` = "", `p-value` = "",
+                          p_num = NA, check.names = FALSE),
+               transform(r, term = sub("mac_group_med", "  ", term)))
+  } else r$term <- UNIV[[v]]
   t2[[v]] <- r
   # variable-level p: Wald (1 df) or overall LR for the factor
-  univ_p[v] <- if (v == "mac_group")
+  univ_p[v] <- if (v == "mac_group_med")
     summary(fit)$logtest["pvalue"] else r$p_num[1]
 }
 t2df <- do.call(rbind, t2)[, 1:3]
@@ -61,11 +69,10 @@ write.csv(t2df, file.path(OUTPUT_DIR, "table2.csv"), row.names = FALSE,
           fileEncoding = "UTF-8")
 logmsg("table2.csv written; N used per model = complete cases per variable")
 logmsg("Univariable p<0.05: ",
-       paste(names(univ_p)[univ_p < 0.05 & names(univ_p) != "mac_group"],
-             collapse = ", "))
+       paste(setdiff(names(univ_p)[univ_p < 0.05], MAC_EXPO), collapse = ", "))
 
 ## ---------- Primary: backward selection ----------
-cand <- setdiff(names(univ_p)[univ_p < 0.05], "mac_group")
+cand <- setdiff(names(univ_p)[univ_p < 0.05], MAC_EXPO)
 if (all(c("tc_10", "ldl_10") %in% cand)) {
   cand <- setdiff(cand, "tc_10")
   logmsg("Collinearity rule applied: TC removed, LDL kept")

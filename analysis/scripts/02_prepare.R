@@ -115,6 +115,9 @@ a$mr_grade5 <- factor(mr_map[mr_raw2], levels = c("No", "I", "II", "III", "IV"))
 logmsg("mr_grade5: ", paste(table(a$mr_grade5, useNA = "ifany"), collapse = "/"),
        " (expect 262/210/39/12/2)")
 stopifnot(sum(is.na(a$mr_grade5)) == 0)
+# Table-1 presentation (decision 2026-09-01): moderate-to-severe MR = II/III/IV
+a$mr_mod_severe <- as.integer(a$mr_grade5 %in% c("II", "III", "IV"))
+logmsg("mr_mod_severe: ", sum(a$mr_mod_severe), " (expect 53)")
 
 # non-numeric coercions introduced how many NAs?
 logmsg("hdl non-numeric -> NA: ", sum(is.na(a$hdl)) ,

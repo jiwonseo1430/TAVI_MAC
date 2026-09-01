@@ -27,7 +27,8 @@ BIN <- c(sex_female = "Sex (Female)", htn = "HTN", dm = "DM", ckd = "CKD",
          copd = "COPD", pad = "PAD", cad = "CAD", afib = "A.fib",
          prev_stroke = "Previous stroke", prev_mi = "Previous MI",
          prev_cardiac_op = "Previous cardiac Op",
-         mdpg_ge5 = "MDPG >=5 mmHg", death = "Death")
+         mdpg_ge5 = "MDPG >=5 mmHg", death = "Death",
+         mr_mod_severe = "Moderate to severe MR")
 FACT <- c(mr_grade = "MR grade")
 ORDER <- c("age", "sex_female", "bmi", "sts", "htn", "dm", "ckd", "copd",
            "pad", "cad", "afib", "prev_stroke", "prev_mi", "prev_cardiac_op",
@@ -83,9 +84,9 @@ build_table <- function(g, glabels) {
 runs <- list(
   list(gv = "mac_group", fn = "table1.csv", mr = "mr_grade",
        labs = function(g) sprintf("%s MAC (N=%d)", c("No", "Low", "High"), table(g))),
-  list(gv = "any_mac", fn = "table1_binary.csv", mr = "mr_grade5",
+  list(gv = "any_mac", fn = "table1_binary.csv", mr = "mr_mod_severe",
        labs = function(g) sprintf("%s (N=%d)", c("No MAC", "MAC"), table(g))),
-  list(gv = "mac_group_med", fn = "table1_medgroup.csv", mr = "mr_grade5",
+  list(gv = "mac_group_med", fn = "table1_medgroup.csv", mr = "mr_mod_severe",
        labs = function(g) sprintf("%s MAC (N=%d)", c("No", "Low", "High"), table(g))))
 for (r in runs) {
   FACT <- setNames("MR grade", r$mr)
@@ -99,12 +100,11 @@ for (r in runs) {
             fileEncoding = "UTF-8")
   logmsg(r$fn, " written (", nrow(t1), " rows)")
 }
-# restore full ORDER (5-level MR) for the by-death supplementary table below
+# restore full ORDER for the by-death supplementary table below
 ORDER <- c("age", "sex_female", "bmi", "sts", "htn", "dm", "ckd", "copd",
            "pad", "cad", "afib", "prev_stroke", "prev_mi", "prev_cardiac_op",
            "tc", "tg", "ldl", "hdl", "lvef", "mdpg_ge5", "rsvp", "ee_prime",
-           "mr_grade5", "death")
-FACT <- c(mr_grade5 = "MR grade")
+           "mr_mod_severe", "death")
 
 # Supplementary Table 1: by vital status (exclude the death row itself)
 gd <- factor(a$death, levels = c(0, 1), labels = c("Survived", "Deceased"))

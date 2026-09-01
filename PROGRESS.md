@@ -58,6 +58,8 @@ table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
 - [x] Final main figures: fig1_km_4panel (A binary whole / B 3-group whole /
       C first year / D landmark) + fig2_spline (A whole / B 1-year).
       Former fig3 absorbed into Fig1 C/D; binary landmark = supplement
+- [x] Table 1: MR collapsed to binary "Moderate to severe MR" (II/III/IV, n=53)
+- [x] Table 2: MAC rows = per-doubling / any MAC / median 3-group (717.2 removed)
 - [x] `10_period_riskfactors.R` — suppl table: first-year deaths = MAC/CKD/A.fib,
       late deaths = age/STS; median FU 2.59 y observed / 3.18 y reverse-KM
 
