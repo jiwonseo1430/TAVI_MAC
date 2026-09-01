@@ -25,11 +25,12 @@ fitb <- survfit(Surv(tte_years, death) ~ any_mac_f, data = a)
 lrb <- survdiff(Surv(tte_years, death) ~ any_mac_f, data = a)
 logmsg("Log-rank (binary): chisq=", sprintf("%.2f", lrb$chisq), ", p=",
        format.pval(pchisq(lrb$chisq, 1, lower.tail = FALSE), digits = 3))
+# x-axis capped at 7 years (decision 2026-09-01; at-risk n beyond 7 y is 0-2)
 pb <- ggsurvplot(fitb, data = a, risk.table = TRUE, pval = TRUE,
                  xlab = "Years after TAVI", ylab = "Survival probability",
                  legend.title = "", legend.labs = c("No MAC", "MAC"),
                  palette = c("#2E9FDF", "#FC4E07"),
-                 break.time.by = 1, xlim = c(0, 8), risk.table.height = 0.25)
+                 break.time.by = 1, xlim = c(0, 7), risk.table.height = 0.25)
 png(file.path(OUTPUT_DIR, "fig1_km_binary.png"), width = 2400, height = 2100, res = 300)
 print(pb); dev.off()
 pdf(file.path(OUTPUT_DIR, "fig1_km_binary.pdf"), width = 8, height = 7)
@@ -95,6 +96,60 @@ print(g); dev.off()
 pdf(file.path(OUTPUT_DIR, "fig2_spline.pdf"), width = 7, height = 5.3)
 print(g); dev.off()
 logmsg("fig2_spline written")
+
+## ---------- 1-year landmark KM (post-hoc, plan post-hoc log 2026-09-01) ----------
+# Panel A: truncated at 1 year (months axis). Panel B: 1-year survivors,
+# clock restarted at the landmark. Two versions: 3-group (median split;
+# manuscript Figure 3) and binary (supplement).
+LM <- 365.25
+a$t_a <- pmin(a$tte_days, LM) / 30.4375
+a$e_a <- as.integer(a$death == 1 & a$tte_days <= LM)
+b <- a[a$tte_days > LM, ]
+b$t_b <- (b$tte_days - LM) / 365.25
+
+landmark_fig <- function(gvar, labs, pal, stem) {
+  # embed the grouping symbol in the call so survminer can re-evaluate it
+  fa <- eval(bquote(survfit(Surv(t_a, e_a) ~ .(as.name(gvar)), data = a)))
+  fb <- eval(bquote(survfit(Surv(t_b, death) ~ .(as.name(gvar)), data = b)))
+  df <- nlevels(factor(a[[gvar]])) - 1
+  pa <- pchisq(survdiff(as.formula(paste("Surv(t_a, e_a) ~", gvar)),
+                        data = a)$chisq, df, lower.tail = FALSE)
+  pb <- pchisq(survdiff(as.formula(paste("Surv(t_b, death) ~", gvar)),
+                        data = b)$chisq, df, lower.tail = FALSE)
+  logmsg(stem, ": panel A log-rank p=", format.pval(pa, digits = 3),
+         "; panel B (n=", nrow(b), ") p=", format.pval(pb, digits = 3))
+  # pass pre-computed log-rank p as text (survminer cannot re-evaluate the
+  # formula built inside this function)
+  ptxt <- function(p) if (p < 1e-4) "p < 0.0001" else sprintf("p = %.3f", p)
+  gA <- ggsurvplot(fa, data = a, risk.table = TRUE, pval = ptxt(pa),
+                   pval.coord = c(0.5, 0.78),
+                   xlab = "Months after TAVI", ylab = "Survival probability",
+                   legend.title = "", legend.labs = labs, palette = pal,
+                   break.time.by = 3, xlim = c(0, 12), ylim = c(0.75, 1),
+                   risk.table.height = 0.32, title = "A. First year after TAVI")
+  gB <- ggsurvplot(fb, data = b, risk.table = TRUE, pval = ptxt(pb),
+                   pval.coord = c(0.3, 0.55),
+                   xlab = "Years after 1-year landmark",
+                   ylab = "Survival probability",
+                   legend.title = "", legend.labs = labs, palette = pal,
+                   break.time.by = 1, xlim = c(0, 5), ylim = c(0.5, 1),
+                   risk.table.height = 0.32,
+                   title = "B. Conditional on 1-year survival")
+  gg <- ggpubr::ggarrange(gA$plot + theme(legend.position = "top"),
+                          gB$plot + theme(legend.position = "top"),
+                          gA$table, gB$table,
+                          ncol = 2, nrow = 2, heights = c(3, 1.2))
+  png(file.path(OUTPUT_DIR, paste0(stem, ".png")), width = 3600, height = 2000,
+      res = 300)
+  print(gg); dev.off()
+  pdf(file.path(OUTPUT_DIR, paste0(stem, ".pdf")), width = 12, height = 6.7)
+  print(gg); dev.off()
+  logmsg(stem, " written")
+}
+landmark_fig("mac_group_med", c("No MAC", "Low MAC", "High MAC"),
+             c("#2E9FDF", "#E7B800", "#FC4E07"), "fig3_landmark_3group")
+landmark_fig("any_mac_f", c("No MAC", "MAC"),
+             c("#2E9FDF", "#FC4E07"), "figS_landmark_binary")
 
 writeLines("\n--- sessionInfo() ---", log_con)
 writeLines(capture.output(sessionInfo()), log_con)

@@ -199,4 +199,13 @@ record; the manuscript uses the Amendment-1 outputs.
 
 ---
 ## Post-hoc log (append-only)
-(empty)
+- 2026-09-01 — **3-interval period HRs (0-30 d / 31-365 d / >365 d)**, run to
+  distinguish periprocedural from early-phase mortality (user request).
+  Result: binary MAC HR 3.84 / 3.58 / 0.99 — excess risk spans the whole first
+  year, not the 30-day window. To be reported as post-hoc in the manuscript.
+- 2026-09-01 — **1-year landmark KM figures** added (Figure 3 = 3-group median
+  split; supplement = binary): first-year log-rank p<0.001 (both), post-landmark
+  p=0.41 / 0.71 — visual counterpart of the period-HR interaction. Post-hoc
+  (motivated by the PH finding), labeled as such.
+- 2026-09-01 — Figure 1 x-axis capped at 7 years (at-risk n beyond 7 y: 0-2);
+  presentation-only change.

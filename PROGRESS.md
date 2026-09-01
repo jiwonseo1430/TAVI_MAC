@@ -49,6 +49,13 @@ table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
 - [x] `09_time_interval.R` — 0-1 y vs >1 y: log2 MAC 1.16 vs 0.99 (int p=0.004);
       binary 3.63 (1.96-6.74) vs 0.99 (0.54-1.80) (int p=0.003)
 
+### Stage 2d — post-hoc additions (plan post-hoc log, 2026-09-01)
+- [x] 3-interval HRs (0-30d/31-365d/>1y): binary 3.84/3.58/0.99 — first-year
+      excess NOT confined to the periprocedural 30 days
+- [x] fig3_landmark_3group (manuscript Fig 3): first-year p<0.0001, gradient
+      No>Low>High; post-landmark p=0.41. figS_landmark_binary -> supplement
+- [x] Figure 1 x-axis capped at 7 years
+
 ### Stage 3 — Manuscript
 - [ ] Draft (Methods/Results first)
 - [ ] Reviewer audit (review/reviewer_checklist.md)
