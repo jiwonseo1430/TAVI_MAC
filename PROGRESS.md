@@ -60,6 +60,14 @@ table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
       Former fig3 absorbed into Fig1 C/D; binary landmark = supplement
 - [x] Table 1: MR collapsed to binary "Moderate to severe MR" (II/III/IV, n=53)
 - [x] Table 2: MAC rows = per-doubling / any MAC / median 3-group (717.2 removed)
+
+### Stage 2e — raw-data update (2026-09-01, missing values filled by user)
+- [x] Pipeline 01-10 re-run on updated xlsx; checks pass; complete-case 524/101
+- [x] Updated key numbers: primary log2 MAC 1.09 (1.03-1.14) p=0.002; any MAC
+      1.88 (1.24-2.85); median Low 1.82 / High 1.95; period HRs binary 3.37 ->
+      0.98 (int p=0.004), continuous 1.15 -> 0.99 (int p=0.006); C-index
+      0.724 -> 0.741 (p=0.164); 1-y spline HR 1.16 (1.08-1.24). Conclusions
+      unchanged.
 - [x] `10_period_riskfactors.R` — suppl table: first-year deaths = MAC/CKD/A.fib,
       late deaths = age/STS; median FU 2.59 y observed / 3.18 y reverse-KM
 

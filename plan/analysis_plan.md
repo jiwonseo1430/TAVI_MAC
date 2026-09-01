@@ -198,6 +198,15 @@ record; the manuscript uses the Amendment-1 outputs.
    Outputs: table1_binary.csv, table_time_interval.csv, fig1_km_binary.png/.pdf.
 
 ---
+## Data-update log
+- 2026-09-01 13:18 — user filled previously missing values in
+  `raw/total 0408.xlsx` (A.fib 1, BMI 1, TC 1, HDL 1). Remaining missing:
+  LDL 1, TG 1, HDL 4, RSVP 39, E/e' 64. Whole pipeline (01-10) re-run;
+  complete-case 522→524 (events 100→101; the one remaining exclusion is the
+  LDL-missing patient). Selection path and final covariates unchanged;
+  all conclusions unchanged (see PROGRESS.md for updated point estimates).
+
+---
 ## Post-hoc log (append-only)
 - 2026-09-01 — **3-interval period HRs (0-30 d / 31-365 d / >365 d)**, run to
   distinguish periprocedural from early-phase mortality (user request).
