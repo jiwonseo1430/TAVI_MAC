@@ -213,6 +213,11 @@ record; the manuscript uses the Amendment-1 outputs.
   linear log2 MAC HR 1.17 (1.09-1.25), nonlinearity p=0.136 (linearity holds in
   the 1-y frame). Whole-period spline (nonlinearity p=0.008) moved to
   supplement as justification. Post-hoc, motivated by the time-structure finding.
+- 2026-09-01 — **2-panel main figures** (decision): Figure 1 = whole-period KM,
+  A binary / B median 3-group (fig1_km_2panel; replaces separate
+  fig1_km_binary + fig1_km_med). Figure 2 = spline, A 1-year mortality /
+  B whole follow-up (single fig2_spline; separate supplement spline dropped).
+  Presentation-only changes.
 - 2026-09-01 — **Supplementary period risk-factor table** (10_period_riskfactors.R,
   primary covariates + age): first-year deaths driven by MAC/CKD/A.fib (age NS);
   post-1-y deaths driven by age (1.07/y) and STS (1.14) with all cardiac

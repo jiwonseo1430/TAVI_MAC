@@ -19,52 +19,51 @@ a <- readRDS(file.path(DERIVED_DIR, "tavi_mac_analysis.rds"))
 selc <- readRDS(file.path(DERIVED_DIR, "model_selection_continuous.rds"))
 a$tte_years <- a$tte_days / 365.25
 
-## ---------- KM binary: No MAC vs MAC (Amendment 2; manuscript Figure 1) ----------
+## ---------- Figure 1 (2-panel, decision 2026-09-01): whole-period KM ----------
+# A = No MAC vs MAC (binary), B = None/Low/High (median split).
+# x-axis capped at 7 years (at-risk n beyond 7 y is 0-2).
 a$any_mac_f <- factor(a$any_mac, levels = 0:1, labels = c("No MAC", "MAC"))
-fitb <- survfit(Surv(tte_years, death) ~ any_mac_f, data = a)
-lrb <- survdiff(Surv(tte_years, death) ~ any_mac_f, data = a)
-logmsg("Log-rank (binary): chisq=", sprintf("%.2f", lrb$chisq), ", p=",
-       format.pval(pchisq(lrb$chisq, 1, lower.tail = FALSE), digits = 3))
-# x-axis capped at 7 years (decision 2026-09-01; at-risk n beyond 7 y is 0-2)
-pb <- ggsurvplot(fitb, data = a, risk.table = TRUE, pval = TRUE,
-                 xlab = "Years after TAVI", ylab = "Survival probability",
-                 legend.title = "", legend.labs = c("No MAC", "MAC"),
-                 palette = c("#2E9FDF", "#FC4E07"),
-                 break.time.by = 1, xlim = c(0, 7), risk.table.height = 0.25)
-png(file.path(OUTPUT_DIR, "fig1_km_binary.png"), width = 2400, height = 2100, res = 300)
-print(pb); dev.off()
-pdf(file.path(OUTPUT_DIR, "fig1_km_binary.pdf"), width = 8, height = 7)
-print(pb); dev.off()
-logmsg("fig1_km_binary written")
 
-## ---------- KM by median-split group (supplement) ----------
-fit <- survfit(Surv(tte_years, death) ~ mac_group_med, data = a)
-lr <- survdiff(Surv(tte_years, death) ~ mac_group_med, data = a)
-logmsg("Log-rank (median groups): chisq=", sprintf("%.2f", lr$chisq),
-       ", p=", format.pval(pchisq(lr$chisq, 2, lower.tail = FALSE), digits = 3))
-p <- ggsurvplot(fit, data = a, risk.table = TRUE, pval = TRUE,
-                xlab = "Years after TAVI", ylab = "Survival probability",
-                legend.title = "MAC volume", legend.labs = c("None", "Low", "High"),
-                palette = c("#2E9FDF", "#E7B800", "#FC4E07"),
-                break.time.by = 1, xlim = c(0, 8), risk.table.height = 0.28)
-png(file.path(OUTPUT_DIR, "fig1_km_med.png"), width = 2400, height = 2100, res = 300)
-print(p); dev.off()
-pdf(file.path(OUTPUT_DIR, "fig1_km_med.pdf"), width = 8, height = 7)
-print(p); dev.off()
-logmsg("fig1_km_med written")
+km_panel <- function(gvar, labs, pal, title) {
+  fit <- eval(bquote(survfit(Surv(tte_years, death) ~ .(as.name(gvar)),
+                             data = a)))
+  df <- length(labs) - 1
+  p <- pchisq(eval(bquote(survdiff(Surv(tte_years, death) ~ .(as.name(gvar)),
+                                   data = a)))$chisq, df, lower.tail = FALSE)
+  logmsg("Fig1 ", title, ": log-rank p=", format.pval(p, digits = 3))
+  ptxt <- if (p < 1e-4) "p < 0.0001" else sprintf("p = %.3f", p)
+  ggsurvplot(fit, data = a, risk.table = TRUE, pval = ptxt,
+             xlab = "Years after TAVI", ylab = "Survival probability",
+             legend.title = "", legend.labs = labs, palette = pal,
+             break.time.by = 1, xlim = c(0, 7),
+             risk.table.height = 0.3, title = title)
+}
+k1 <- km_panel("any_mac_f", c("No MAC", "MAC"),
+               c("#2E9FDF", "#FC4E07"), "A. MAC presence")
+k2 <- km_panel("mac_group_med", c("No MAC", "Low MAC", "High MAC"),
+               c("#2E9FDF", "#E7B800", "#FC4E07"), "B. MAC volume group")
+g1 <- ggpubr::ggarrange(k1$plot + theme(legend.position = "top"),
+                        k2$plot + theme(legend.position = "top"),
+                        k1$table, k2$table,
+                        ncol = 2, nrow = 2, heights = c(3, 1.2))
+png(file.path(OUTPUT_DIR, "fig1_km_2panel.png"), width = 3600, height = 2000,
+    res = 300)
+print(g1); dev.off()
+pdf(file.path(OUTPUT_DIR, "fig1_km_2panel.pdf"), width = 12, height = 6.7)
+print(g1); dev.off()
+logmsg("fig1_km_2panel written")
 
 ## ---------- adjusted spline dose-response ----------
-# fig2_spline: 1-YEAR mortality (Cox censored at 1 y) — main figure, matching
-#   the time-structure finding (plan post-hoc log 2026-09-01)
-# figS_spline_fullperiod: whole follow-up — supplement (average HR under the
-#   PH violation; its nonlinearity p documents why the 1-y frame is used)
+# fig2_spline (2-panel, decision 2026-09-01): A = 1-year mortality (Cox
+# censored at 1 y), B = whole follow-up. Panel B is the average HR under the
+# PH violation; its nonlinearity p documents why the 1-y frame leads.
 covs <- selc$selected
 cc <- a[a$id %in% selc$cc_ids, ]
 kn <- quantile(cc$log2_mac[cc$mac_vol > 0], c(1/3, 2/3))
 cc$t1 <- pmin(cc$tte_days, 365.25); cc$t1[cc$t1 == 0] <- 0.5
 cc$e1 <- as.integer(cc$death == 1 & cc$tte_days <= 365.25)
 
-spline_fig <- function(tvar, evar, stem, ylab) {
+spline_panel <- function(tvar, evar, stem, ylab, title) {
   sfit <- coxph(as.formula(paste(
     "Surv(", tvar, ",", evar, ") ~ splines::ns(log2_mac, knots = kn) +",
     paste(covs, collapse = " + "))), data = cc)
@@ -97,22 +96,25 @@ spline_fig <- function(tvar, evar, stem, ylab) {
              alpha = 0.25, length = unit(0.02, "npc")) +
     scale_x_log10(breaks = c(1, 11, 101, 1001, 5001),
                   labels = c("0", "10", "100", "1000", "5000")) +
-    scale_y_log10() +
+    scale_y_log10(limits = c(0.1, 130)) +
     labs(x = expression(paste("MAC volume (", mm^3, ")")), y = ylab,
-         caption = paste("Cox model: ns(log2(vol+1), df=3) +",
-                         paste(covs, collapse = ", "))) +
-    theme_classic(base_size = 13)
-  png(file.path(OUTPUT_DIR, paste0(stem, ".png")), width = 2100, height = 1600,
-      res = 300)
-  print(g); dev.off()
-  pdf(file.path(OUTPUT_DIR, paste0(stem, ".pdf")), width = 7, height = 5.3)
-  print(g); dev.off()
-  logmsg(stem, " written")
+         title = title) +
+    theme_classic(base_size = 12)
+  g
 }
-spline_fig("t1", "e1", "fig2_spline",
-           "Adjusted HR for 1-year mortality (95% CI) vs no MAC")
-spline_fig("tte_days", "death", "figS_spline_fullperiod",
-           "Adjusted hazard ratio (95% CI) vs no MAC")
+g2a <- spline_panel("t1", "e1", "fig2A (0-1y)",
+                    "Adjusted HR for 1-year mortality (95% CI) vs no MAC",
+                    "A. First-year mortality")
+g2b <- spline_panel("tte_days", "death", "fig2B (whole follow-up)",
+                    "Adjusted HR (95% CI) vs no MAC",
+                    "B. Whole follow-up")
+g2 <- ggpubr::ggarrange(g2a, g2b, ncol = 2)
+png(file.path(OUTPUT_DIR, "fig2_spline.png"), width = 3600, height = 1500,
+    res = 300)
+print(g2); dev.off()
+pdf(file.path(OUTPUT_DIR, "fig2_spline.pdf"), width = 12, height = 5)
+print(g2); dev.off()
+logmsg("fig2_spline (2-panel A/B) written")
 
 ## ---------- 1-year landmark KM (post-hoc, plan post-hoc log 2026-09-01) ----------
 # Panel A: truncated at 1 year (months axis). Panel B: 1-year survivors,
