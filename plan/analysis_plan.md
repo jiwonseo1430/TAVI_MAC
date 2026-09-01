@@ -199,6 +199,10 @@ record; the manuscript uses the Amendment-1 outputs.
 
 ---
 ## Data-update log
+- 2026-09-01 13:25 — user filled the last LDL missing value. **No missing data
+  remain among model variables**: primary analyses now run on the full cohort
+  (N=525, 102 events; complete-case = whole cohort). Pipeline 01-10 re-run;
+  selection path and covariates unchanged; conclusions unchanged.
 - 2026-09-01 13:18 — user filled previously missing values in
   `raw/total 0408.xlsx` (A.fib 1, BMI 1, TC 1, HDL 1). Remaining missing:
   LDL 1, TG 1, HDL 4, RSVP 39, E/e' 64. Whole pipeline (01-10) re-run;

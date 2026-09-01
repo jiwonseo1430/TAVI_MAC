@@ -62,12 +62,15 @@ table_time_interval, table4c, fig1_km_binary, fig2_spline (+ supplements).
 - [x] Table 2: MAC rows = per-doubling / any MAC / median 3-group (717.2 removed)
 
 ### Stage 2e — raw-data update (2026-09-01, missing values filled by user)
-- [x] Pipeline 01-10 re-run on updated xlsx; checks pass; complete-case 524/101
-- [x] Updated key numbers: primary log2 MAC 1.09 (1.03-1.14) p=0.002; any MAC
-      1.88 (1.24-2.85); median Low 1.82 / High 1.95; period HRs binary 3.37 ->
-      0.98 (int p=0.004), continuous 1.15 -> 0.99 (int p=0.006); C-index
-      0.724 -> 0.741 (p=0.164); 1-y spline HR 1.16 (1.08-1.24). Conclusions
-      unchanged.
+- [x] A.fib/BMI/TC/HDL then LDL filled -> NO missing model variables; primary
+      analyses on full cohort N=525, 102 events
+- [x] FINAL key numbers: primary log2 MAC 1.09 (1.04-1.15) p<0.001; any MAC
+      1.92 (1.27-2.91) p=0.002; median Low 1.83 (1.12-2.97) / High 2.02
+      (1.25-3.27); period HRs binary 3.46 (1.90-6.31) -> 0.99 (int p=0.003),
+      continuous 1.16 (1.08-1.24) -> 0.99 (int p=0.005); C-index 0.725 ->
+      0.742 (p=0.152) / 0.746 median (p=0.062); 1-y spline linear HR 1.16
+      (1.09-1.24), nonlinearity p=0.175; median FU 2.59 y obs / 3.18 y
+      reverse-KM. Conclusions unchanged.
 - [x] `10_period_riskfactors.R` — suppl table: first-year deaths = MAC/CKD/A.fib,
       late deaths = age/STS; median FU 2.59 y observed / 3.18 y reverse-KM
 
